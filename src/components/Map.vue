@@ -7,6 +7,7 @@
 export default {
   name: "tencent-map",
   mounted: function() {
+    this.aMarkArray = [];
     this.$nextTick(function() {
       this.oGeolocation = new BMap.Geolocation();
       //   var oGeolocation = new qq.maps.Geolocation();
@@ -48,7 +49,9 @@ export default {
               animation: qq.maps.MarkerAnimation.DROP,
               map: that.oTencentMap
             });
+            that.aMarkArray.push(oUserLocationMarker);
             that.addCustomController();
+            that.addDragMapEvent(that.regetHospitalNearby);
             that.getHospitalsNearby();
           }
         }
@@ -57,6 +60,32 @@ export default {
 
     watchMovement() {
       //When user move, this function will be called.
+    },
+
+    addDragMapEvent(fDragFunction) {
+      qq.maps.event.addListener(
+        this.oTencentMap,
+        "center_changed",
+        fDragFunction
+      );
+    },
+
+    regetHospitalNearby() {
+      this.clearOtherMarker();
+      //oCenter: Maybe used when get new hospital nearby
+      var oCenter = this.oTencentMap.getCenter();
+      this.getHospitalsNearby();
+    },
+
+    clearOtherMarker() {
+      if (this.aMarkArray) {
+        for (var i = 0; i < this.aMarkArray.length; i++) {
+          if (this.aMarkArray[i].getPosition() !== this.oCenter) {
+            this.aMarkArray[i].setMap(null);
+          }
+        }
+        this.aMarkArray.length = 1;
+      }
     },
 
     addCustomController() {
@@ -81,20 +110,17 @@ export default {
       //If you have more marker, just add loop here.
       for (var i = 1; i < 3; i++) {
         var oIconFeatures = {
-          size: new qq.maps.Size(24, 24)
+          size: new qq.maps.Size(50, 50)
         };
         var oCustomizeMarker = new qq.maps.MarkerImage(
           "https://www.easyicon.net/download/png/30292/48/"
         );
         var oNewMarker = new qq.maps.Marker({
+          position: this.oTencentMap.getCenter(),
           icon: oCustomizeMarker,
-          map: this.oTencentMap,
-          //   position: new qq.maps.LatLng(
-          //     this.oCenter.lat + i,
-          //     this.oCenter.lng + i
-          //   )
-          position: this.oCenter
+          map: this.oTencentMap
         });
+        this.aMarkArray.push(oNewMarker);
       }
     }
   }
