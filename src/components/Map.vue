@@ -51,7 +51,11 @@ export default {
             });
             that.aMarkArray.push(oUserLocationMarker);
             that.addCustomController();
-            that.addDragMapEvent(that.regetHospitalNearby);
+            that.addEventToMap(
+              that.oTencentMap,
+              "center_changed",
+              that.regetHospitalNearby
+            );
             that.getHospitalsNearby();
           }
         }
@@ -62,12 +66,8 @@ export default {
       //When user move, this function will be called.
     },
 
-    addDragMapEvent(fDragFunction) {
-      qq.maps.event.addListener(
-        this.oTencentMap,
-        "center_changed",
-        fDragFunction
-      );
+    addEventToMap(oController, sEventType, fHandler) {
+      qq.maps.event.addListener(oController, sEventType, fHandler);
     },
 
     regetHospitalNearby() {
@@ -118,10 +118,17 @@ export default {
         var oNewMarker = new qq.maps.Marker({
           position: this.oTencentMap.getCenter(),
           icon: oCustomizeMarker,
-          map: this.oTencentMap
+          map: this.oTencentMap //use your own loacation here, not center!
         });
+        this.addEventToMap(oNewMarker, "click", this.showDescription);
         this.aMarkArray.push(oNewMarker);
       }
+    },
+
+    showDescription(oEvent) {
+      alert("a");
+      var oClickedMarker = oEvent.target;
+      //you can get the properties of clicked marker by its function(eg: oClickedMarker.getTitle).
     }
   }
 };
